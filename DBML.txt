@@ -1,0 +1,66 @@
+Enum Role {
+  admin
+  worker
+  provider
+}
+
+Table User {
+  idU integer [primary key]
+  age integer [note: ">= 0"]
+  role Role
+  fname varchar
+  lname varchar
+  username varchar [unique]
+  password varchar [note: "8 to 32 characters"]
+}
+
+Table Transaction {
+  idT integer [primary key]
+  userId integer [not null, ref: > User.idU]
+
+  Total integer [note: ">= 0"]
+  created_at timestamp
+}
+
+Table Product {
+  idP integer [primary key]
+  name varchar
+  quantity integer [note: ">= 0"]
+  minQuantity integer [note: ">= 0"]
+  price integer [note: ">= 0"]
+  cost integer [note: ">= 0"]
+  barcode varchar [unique]
+  category varchar
+}
+
+Table Provide {
+  idProvide integer [primary key]
+  userId integer [not null, ref: > User.idU]
+
+  Total integer [note: ">= 0"]
+  created_at timestamp
+}
+
+Table ProvideItem {
+  provideId integer [ref: > Provide.idProvide]
+  productId integer [ref: > Product.idP]
+
+  quantity integer [note: "> 0"]
+  UnitPrice integer [note: ">= 0"]
+
+  indexes {
+    (provideId, productId) [pk]
+  }
+}
+
+Table TransactionItem {
+  productId integer [ref: > Product.idP]
+  idT integer [ref: > Transaction.idT]
+
+  quantity integer [note: "> 0"]
+  UnitPrice integer [note: ">= 0"]
+
+  indexes {
+    (idT, productId) [pk]
+  }
+}
