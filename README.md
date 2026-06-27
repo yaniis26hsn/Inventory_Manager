@@ -1,6 +1,8 @@
 # Inventory_Manager
 A web app that let's you handle a stock as an Owner/worker
 
+## Database Model
+![MPD](MPD.png)
 
 Here is a full “client-level specification” of the Inventory + Sales System, as if you were going to request it from a developer.
 
