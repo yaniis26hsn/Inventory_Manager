@@ -40,15 +40,15 @@ async function seed() {
 
   const users = await userRepo.save([
     { age: 30, role: Role.ADMIN, fname: 'Alice', lname: 'Johnson', username: 'alice', password: 'pass1234' },
-    { age: 25, role: Role.WORKER, fname: 'Bob', lname: 'Smith', username: 'bob', password: 'pass1234' },
-    { age: 35, role: Role.WORKER, fname: 'Charlie', lname: 'Brown', username: 'charlie', password: 'pass1234' },
-    { age: 28, role: Role.PROVIDER, fname: 'Diana', lname: 'Prince', username: 'diana', password: 'pass1234' },
-    { age: 40, role: Role.PROVIDER, fname: 'Eve', lname: 'Davis', username: 'eve', password: 'pass1234' },
-    { age: 22, role: Role.WORKER, fname: 'Frank', lname: 'Miller', username: 'frank', password: 'pass1234' },
+    { age: 25, role: Role.Worker, fname: 'Bob', lname: 'Smith', username: 'bob', password: 'pass1234' },
+    { age: 35, role: Role.Worker, fname: 'Charlie', lname: 'Brown', username: 'charlie', password: 'pass1234' },
+    { age: 28, role: Role.Provider, fname: 'Diana', lname: 'Prince', username: 'diana', password: 'pass1234' },
+    { age: 40, role: Role.Provider, fname: 'Eve', lname: 'Davis', username: 'eve', password: 'pass1234' },
+    { age: 22, role: Role.Worker, fname: 'Frank', lname: 'Miller', username: 'frank', password: 'pass1234' },
     { age: 33, role: Role.ADMIN, fname: 'Grace', lname: 'Wilson', username: 'grace', password: 'pass1234' },
-    { age: 27, role: Role.WORKER, fname: 'Hank', lname: 'Moore', username: 'hank', password: 'pass1234' },
-    { age: 45, role: Role.PROVIDER, fname: 'Ivy', lname: 'Taylor', username: 'ivy', password: 'pass1234' },
-    { age: 29, role: Role.WORKER, fname: 'Jack', lname: 'Anderson', username: 'jack', password: 'pass1234' },
+    { age: 27, role: Role.Worker, fname: 'Hank', lname: 'Moore', username: 'hank', password: 'pass1234' },
+    { age: 45, role: Role.Provider, fname: 'Ivy', lname: 'Taylor', username: 'ivy', password: 'pass1234' },
+    { age: 29, role: Role.Worker, fname: 'Jack', lname: 'Anderson', username: 'jack', password: 'pass1234' },
   ]);
 
   const products = await productRepo.save([
