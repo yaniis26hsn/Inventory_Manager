@@ -60,7 +60,7 @@ async function seed() {
     { name: 'Cheese Pizza', quantity: 20, minQuantity: 5, price: 8, cost: 3, barcode: '10000006', category: Category.FOOD },
     { name: 'Spring Water 500ml', quantity: 100, minQuantity: 30, price: 1, cost: 1, barcode: '20000001', category: Category.BEVERAGE },
     { name: 'Orange Juice 1L', quantity: 40, minQuantity: 15, price: 4, cost: 2, barcode: '20000002', category: Category.BEVERAGE },
-    { name: 'Cola 330ml', quantity: 80, minQuantity: 25, price: 2, cost: 1, barcode: '20000003', category: Category.BEVERAGE },
+    { name: 'Soda 330ml', quantity: 80, minQuantity: 25, price: 2, cost: 1, barcode: '20000003', category: Category.BEVERAGE },
     { name: 'Green Tea Box', quantity: 35, minQuantity: 10, price: 6, cost: 3, barcode: '20000004', category: Category.BEVERAGE },
     { name: 'Coffee Beans 250g', quantity: 12, minQuantity: 8, price: 10, cost: 5, barcode: '20000005', category: Category.BEVERAGE },
     { name: 'USB-C Cable 2m', quantity: 60, minQuantity: 15, price: 8, cost: 3, barcode: '30000001', category: Category.ELECTRONICS },

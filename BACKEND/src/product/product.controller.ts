@@ -5,11 +5,7 @@ import { productService } from "./product.service";
 export class ProductController {
   constructor(private readonly service: productService) {}
 
-  @Get()
-  findAll(@Query() filters: Record<string, any>) {
-    return this.service.findAll(filters);
-  }
-
+  
   @Get('verify-storage')
   verifyStorage() {
     return this.service.verifyStorage();

@@ -21,22 +21,6 @@ export class productService{
     }) ;
   }
 
-  async findAll(filters: Record<string, any>) {
-    const qb = this.repository.createQueryBuilder('product');
-
-    for (const [key, value] of Object.entries(filters)) {
-      if (key.endsWith('_min')) {
-        const field = key.slice(0, -4);
-        qb.andWhere(`product.${field} >= :${key}`, { [key]: value });
-      } else if (key.endsWith('_max')) {
-        const field = key.slice(0, -4);
-        qb.andWhere(`product.${field} <= :${key}`, { [key]: value });
-      } else {
-        qb.andWhere(`product.${key} LIKE :${key}`, { [key]: `%${value}%` });
-      }
-    }
-
-    return await qb.getMany();
-  }
+ 
 }
 
