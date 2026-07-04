@@ -20,7 +20,9 @@ export class productService{
         where : {quantity : 0} ,
     }) ;
   }
-
+   async findAll(){
+    return await this.repository.find() ;
+   }
  
 }
 

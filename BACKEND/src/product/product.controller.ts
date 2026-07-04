@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get } from "@nestjs/common";
 import { productService } from "./product.service";
 
 @Controller('products')
@@ -14,5 +14,9 @@ export class ProductController {
   @Get('out-of-stock')
   outOfStock() {
     return this.service.findOutOfStock();
+  }
+  @Get('all')
+  findAll(){
+    return this.service.findAll() 
   }
 }
