@@ -228,7 +228,7 @@ Example:
 
 A shop sells drinks:
 
-1. You add “Coca-Cola” with 50 units
+1. You add “Cola” with 50 units
 2. A customer buys 3 bottles
 3. System reduces stock to 47 automatically
 4. Later stock reaches 5 → system warns “low stock”
