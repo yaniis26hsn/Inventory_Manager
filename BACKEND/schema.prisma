@@ -1,0 +1,31 @@
+
+datasource db{
+    provider = "mysql|
+    url = env()
+}
+generator client {
+    provider = "prisma-client-js"
+}
+
+enum Role {
+  admin
+  worker
+  provider
+
+}
+model User {
+     idU Int @id @default(autoincrement())
+ age  Int
+ lname String 
+ fname String 
+ password  String 
+ username String @unique
+ role  Role 
+
+}
+
+model Provide {
+    idProvide Int @id @default(autoincrement())
+    total Float 
+    created_at DateTime @default(now())
+}
