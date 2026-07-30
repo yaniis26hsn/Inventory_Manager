@@ -41,18 +41,18 @@ model Provide {
     total Float 
     created_at DateTime @default(now())
     ProviderId Int 
-    user User @relation(fields:[ProviderId],references: [id])
+    user User @relation(fields:[ProviderId],references: [idU])
 }
 
 model Product {
-    idP Int @default(autoincrement())
+    idP Int @id @default(autoincrement())
     name String
     quantity Int
     minQuantity Int
     price Int
     cost Int
     barcode String
-    category Category
+    category Category @unique
 
 }
 
@@ -61,7 +61,7 @@ idTransaction Int @id @default(autoincrement())
 total Float 
 created_at DateTime @default(now())
 workerId Int 
-user User @relation(fields:[workerId],references: [id])
+user User @relation(fields:[workerId],references: [idU])
 
 }
 model TransactionItem {
