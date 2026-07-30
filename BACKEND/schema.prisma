@@ -1,7 +1,7 @@
 
 datasource db{
     provider = "mysql"
-    url = env()
+    url = env("DATABASE_URL")
 }
 generator client {
     provider = "prisma-client-js"
@@ -51,8 +51,8 @@ model Product {
     minQuantity Int
     price Int
     cost Int
-    barcode String
-    category Category @unique
+    barcode String @unique
+    category Category 
 
 }
 
@@ -69,6 +69,8 @@ model TransactionItem {
    product Product @relation(fields:[productId],references: [idP])
    transactionId Int 
    transaction Transaction @relation(fields:[transactionId],references:[idTransaction])
+ 
+   @@id([transactionId, productId])
 
    quantity Int 
    unitPrice Int 
@@ -78,6 +80,7 @@ model ProvideItem {
     product Product @relation(fields:[productId],references: [idP])
     provideId Int 
     provide Provide @relation(fields:[provideId],references: [idProvide])
+    @@id([productId,provideId])
 
     quantity Int 
     unitPrice Int 

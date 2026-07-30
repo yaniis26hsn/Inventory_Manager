@@ -28,8 +28,8 @@ Table User {
 }
 
 Table Transaction {
-  idT integer [primary key]
-  userId integer [not null, ref: > User.idU]
+  idTransaction integer [primary key]
+  workerId integer [not null, ref: > User.idU]
 
   Total integer [note: ">= 0"]
   created_at timestamp
@@ -48,7 +48,7 @@ Table Product {
 
 Table Provide {
   idProvide integer [primary key]
-  userId integer [not null, ref: > User.idU]
+  ProviderId integer [not null, ref: > User.idU]
 
   total integer [note: ">= 0"]
   created_at timestamp
@@ -68,7 +68,7 @@ Table ProvideItem {
 
 Table TransactionItem {
   productId integer [ref: > Product.idP]
-  transactionId integer [ref: > Transaction.idT]
+  transactionId integer [ref: > Transaction.idTransaction]
 
   quantity integer [note: "> 1"]
   unitPrice integer [note: ">= 0"]
