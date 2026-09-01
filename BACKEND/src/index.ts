@@ -1,18 +1,18 @@
 import "dotenv/config";
 import express from "express";
-import { PrismaClient } from "@prisma/client";
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
-import mariadb from "mariadb";
+import productsRouter from "./routes/products.js";
+import usersRouter from "./routes/users.js";
+import transactionsRouter from "./routes/transactions.js";
+import providesRouter from "./routes/provides.js";
 
-const pool = mariadb.createPool({ uri: process.env.DATABASE_URL });
-const adapter = new PrismaMariaDb(pool);
-const prisma = new PrismaClient({ adapter });
 const app = express();
 
-app.get("/products", async (req, res) => {
-  const products = await prisma.product.findMany();
-  res.json(products);
-});
+app.use(express.json());
+
+app.use("/products", productsRouter);
+app.use("/users", usersRouter);
+app.use("/transactions", transactionsRouter);
+app.use("/provides", providesRouter);
 
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
