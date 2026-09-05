@@ -1,33 +1,47 @@
 import { Router } from "express";
+import type { Category } from "@prisma/client";
 import { prisma } from "../prisma.js";
+import { authenticate, authorize } from "../middleware/auth.js";
 
 const router = Router();
 
-router.get("/", async (req, res) => {
+router.get("/", authenticate, async (req, res) => {
+  const { search, category, stock } = req.query;
+  const products = await prisma.product.findMany({
+    where: {
+      ...(search ? { name: { contains: String(search) } } : {}),
+      ...(category ? { category: String(category) as Category } : {}),
+    },
+  });
+
+  let result = products;
+  if (stock === "out") {
+    result = products.filter((p) => p.quantity === 0);
+  } else if (stock === "low") {
+    result = products.filter((p) => p.quantity > 0 && p.quantity <= p.minQuantity);
+  } else if (stock === "in") {
+    result = products.filter((p) => p.quantity > p.minQuantity);
+  }
+
+  res.json(result);
+});
+
+router.get("/all", authenticate, async (req, res) => {
   const products = await prisma.product.findMany();
   res.json(products);
 });
 
-router.get("/all", async (req, res) => {
+router.get("/verify-storage", authenticate, async (req, res) => {
   const products = await prisma.product.findMany();
-  res.json(products);
+  res.json(products.filter((p) => p.quantity <= p.minQuantity));
 });
 
-router.get("/verify-storage", async (req, res) => {
-  const products = await prisma.product.findMany({
-    where: { quantity: { lte: prisma.product.fields.minQuantity } },
-  });
-  res.json(products);
+router.get("/out-of-stock", authenticate, async (req, res) => {
+  const products = await prisma.product.findMany();
+  res.json(products.filter((p) => p.quantity === 0));
 });
 
-router.get("/out-of-stock", async (req, res) => {
-  const products = await prisma.product.findMany({
-    where: { quantity: 0 },
-  });
-  res.json(products);
-});
-
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticate, async (req, res) => {
   const product = await prisma.product.findUnique({
     where: { idP: Number(req.params.id) },
   });
@@ -35,7 +49,7 @@ router.get("/:id", async (req, res) => {
   res.json(product);
 });
 
-router.post("/", async (req, res) => {
+router.post("/", authenticate, authorize("admin"), async (req, res) => {
   const { name, quantity, minQuantity, price, cost, barcode, category } = req.body;
   const product = await prisma.product.create({
     data: { name, quantity, minQuantity, price, cost, barcode, category },
@@ -43,7 +57,7 @@ router.post("/", async (req, res) => {
   res.status(201).json(product);
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticate, authorize("admin"), async (req, res) => {
   const { name, quantity, minQuantity, price, cost, barcode, category } = req.body;
   const product = await prisma.product.update({
     where: { idP: Number(req.params.id) },
@@ -52,7 +66,7 @@ router.put("/:id", async (req, res) => {
   res.json(product);
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticate, authorize("admin"), async (req, res) => {
   await prisma.product.delete({ where: { idP: Number(req.params.id) } });
   res.status(204).send();
 });

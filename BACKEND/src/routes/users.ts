@@ -1,14 +1,16 @@
 import { Router } from "express";
+import type { Role } from "@prisma/client";
 import { prisma } from "../prisma.js";
+import { authenticate, authorize } from "../middleware/auth.js";
 
 const router = Router();
 
-router.get("/", async (req, res) => {
+router.get("/", authenticate, authorize("admin"), async (req, res) => {
   const users = await prisma.user.findMany();
   res.json(users);
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticate, authorize("admin"), async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { idU: Number(req.params.id) },
   });
@@ -16,24 +18,24 @@ router.get("/:id", async (req, res) => {
   res.json(user);
 });
 
-router.post("/", async (req, res) => {
+router.post("/", authenticate, authorize("admin"), async (req, res) => {
   const { age, lname, fname, password, username, role } = req.body;
   const user = await prisma.user.create({
-    data: { age, lname, fname, password, username, role },
+    data: { age, lname, fname, password, username, role: role as Role },
   });
   res.status(201).json(user);
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticate, authorize("admin"), async (req, res) => {
   const { age, lname, fname, password, username, role } = req.body;
   const user = await prisma.user.update({
     where: { idU: Number(req.params.id) },
-    data: { age, lname, fname, password, username, role },
+    data: { age, lname, fname, password, username, role: role as Role },
   });
   res.json(user);
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticate, authorize("admin"), async (req, res) => {
   await prisma.user.delete({ where: { idU: Number(req.params.id) } });
   res.status(204).send();
 });
