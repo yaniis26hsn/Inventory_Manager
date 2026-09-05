@@ -4,11 +4,13 @@ import productsRouter from "./routes/products.js";
 import usersRouter from "./routes/users.js";
 import transactionsRouter from "./routes/transactions.js";
 import providesRouter from "./routes/provides.js";
+import authRouter from "./routes/auth.js";
 
 const app = express();
 
 app.use(express.json());
 
+app.use("/auth", authRouter);
 app.use("/products", productsRouter);
 app.use("/users", usersRouter);
 app.use("/transactions", transactionsRouter);
