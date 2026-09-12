@@ -108,6 +108,7 @@ h1 { max-width: 640px; margin-bottom: 18px; font-size: clamp(38px, 6vw, 68px); l
 .input-wrap input::placeholder, .hint, .login-footer { color: var(--muted); }
 .hint { font-size: 10px; }
 .form-message { display: none; margin: 0 0 14px; padding: 11px 12px; border: 1px solid #275944; border-radius: 8px; color: #9de0b5; background: #102d27; font-size: 12px; }
+.form-message--error { display: none; margin: 0 0 14px; padding: 11px 12px; border: 1px solid #5c2731; border-radius: 8px; color: #ffb3bc; background: #2b1520; font-size: 12px; }
 .login-footer { margin-top: 16px; text-align: center; font-size: 11px; }
 .login-footer p { margin-bottom: 12px; }
 .login-footer a { color: #8f9fff; font-weight: 600; }

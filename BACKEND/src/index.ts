@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import cors from "cors";
 import productsRouter from "./routes/products.js";
 import usersRouter from "./routes/users.js";
 import transactionsRouter from "./routes/transactions.js";
@@ -10,6 +11,7 @@ import { errorHandler } from "./middleware/error.js";
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 app.use("/auth", authRouter);
