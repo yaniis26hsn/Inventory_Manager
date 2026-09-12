@@ -133,3 +133,110 @@ h1 { max-width: 640px; margin-bottom: 18px; font-size: clamp(38px, 6vw, 68px); l
     .login-page { padding: 12px 14px 20px; }
     .login-card { padding: 14px; }
 }
+
+/* --- App shell --- */
+.app-topbar {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(3, 11, 27, .74);
+    backdrop-filter: blur(14px);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+.app-topbar-actions { display: flex; align-items: center; gap: 10px; }
+.user-chip { display: grid; text-align: right; line-height: 1.2; }
+.user-chip strong { font-size: 13px; }
+.user-chip em { color: var(--muted); font-style: normal; font-size: 10px; text-transform: capitalize; }
+
+.app-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 64px); }
+.sidebar { padding: 18px 12px; border-right: 1px solid var(--border); background: rgba(7, 22, 48, .5); }
+.sidebar-nav { position: sticky; top: 82px; display: flex; flex-direction: column; gap: 4px; }
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+.sidebar-link:hover { color: var(--text); background: var(--surface-soft); }
+.sidebar-link.active { color: #fff; background: var(--primary); }
+
+.app-content { padding: 26px 28px 48px; min-width: 0; }
+.view-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+.view-head h1 { margin: 0; font-size: 24px; letter-spacing: -0.01em; }
+.view-head .hint { color: var(--muted); font-size: 11px; }
+
+.card { padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.card h2 { margin: 0 0 12px; font-size: 14px; }
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.alerts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+.list-card ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.list-card li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    background: var(--surface-soft);
+    font-size: 12px;
+}
+.list-card li span { color: var(--muted); }
+
+.badge { padding: 3px 9px; border-radius: 999px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.badge-ok { color: #9de0b5; background: #102d27; }
+.badge-warn { color: #ffd98a; background: #33270f; }
+.badge-danger { color: #ffb3bc; background: #2b1520; }
+
+.table-wrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.table th {
+    padding: 10px 12px;
+    text-align: left;
+    color: var(--muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+.table td { padding: 11px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.table tbody tr:hover { background: var(--surface-soft); }
+
+.empty { color: var(--muted); font-size: 12px; padding: 16px; text-align: center; }
+.loading { color: var(--muted); font-size: 12px; padding: 16px; text-align: center; }
+
+.segmented { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.segmented button {
+    padding: 8px 14px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.segmented button.active { color: #fff; background: var(--primary-dark); }
+
+@media (max-width: 900px) {
+    .metric-grid, .alerts-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 780px) {
+    .app-layout { grid-template-columns: 1fr; }
+    .sidebar { padding: 10px 12px; border-right: 0; border-bottom: 1px solid var(--border); }
+    .sidebar-nav { position: static; flex-direction: row; overflow-x: auto; }
+    .sidebar-link { white-space: nowrap; }
+    .app-topbar { padding: 0 14px; }
+    .user-chip { display: none; }
+    .view-head { flex-direction: column; align-items: flex-start; }
+}
