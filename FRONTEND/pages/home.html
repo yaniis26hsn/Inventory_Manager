@@ -55,12 +55,27 @@
             </section>
 
             <section class="view" data-view="products" hidden>
-                <div class="view-head"><h1>Products</h1></div>
-                <div class="card table-wrap">
-                    <table class="table">
-                        <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Cost</th><th>Quantity</th><th>Status</th></tr></thead>
-                        <tbody id="productsTbody"></tbody>
-                    </table>
+                <div class="view-head">
+                    <h1>Products</h1>
+                    <button class="button button-primary" type="button" id="newProductBtn" data-admin-only>+ New Product</button>
+                </div>
+                <div class="card">
+                    <div class="toolbar">
+                        <input class="input" id="productSearch" type="search" placeholder="Search by name…" autocomplete="off">
+                        <select class="input" id="categoryFilter" aria-label="Filter by category"></select>
+                        <select class="input" id="stockFilter" aria-label="Filter by stock">
+                            <option value="">All stock</option>
+                            <option value="in">In stock</option>
+                            <option value="low">Low stock</option>
+                            <option value="out">Out of stock</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Cost</th><th>Quantity</th><th>Status</th><th data-admin-only>Actions</th></tr></thead>
+                            <tbody id="productsTbody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
