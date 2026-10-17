@@ -1,5 +1,5 @@
 # Inventory_Manager
-A web app that let's you handle a stock as an Owner/worker
+A web app that let's you handle a stock as an Owner/worker/stock worker
 
 ## Database Model
 ![MPD](MPD.png)
