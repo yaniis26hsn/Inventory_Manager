@@ -1,0 +1,198 @@
+-- ============================================================
+-- TP03 - Partie IV : ON DELETE / ON UPDATE
+-- Base : My_first_library_database
+-- A exécuter sur la base originale (avant les modifs de Partie III)
+-- ============================================================
+USE My_first_library_database;
+
+-- ------------------------------------------------------------
+-- Sauvegarde des tables nécessaires pour restaurer entre les tests
+-- ------------------------------------------------------------
+DROP TABLE IF EXISTS Books_bak, Publishers_bak;
+CREATE TABLE Books_bak      AS SELECT * FROM Books;
+CREATE TABLE Publishers_bak AS SELECT * FROM Publishers;
+
+-- publisher doit être nullable pour pouvoir tester SET NULL
+ALTER TABLE Books MODIFY publisher INT NULL;
+
+-- ------------------------------------------------------------
+-- Procédure : supprimer la FK Books.publisher -> Publishers.publisherID
+-- (retrouve automatiquement le nom de la contrainte)
+-- ------------------------------------------------------------
+DROP PROCEDURE IF EXISTS drop_fk_books_publisher;
+DELIMITER //
+CREATE PROCEDURE drop_fk_books_publisher()
+BEGIN
+  DECLARE fk VARCHAR(64) DEFAULT NULL;
+
+  SELECT CONSTRAINT_NAME INTO fk
+  FROM information_schema.KEY_COLUMN_USAGE
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'Books'
+    AND COLUMN_NAME = 'publisher'
+    AND REFERENCED_TABLE_NAME = 'Publishers'
+    AND REFERENCED_COLUMN_NAME = 'publisherID'
+  LIMIT 1;
+
+  IF fk IS NOT NULL THEN
+    SET @s = CONCAT('ALTER TABLE Books DROP FOREIGN KEY `', fk, '`');
+    PREPARE st FROM @s;
+    EXECUTE st;
+    DEALLOCATE PREPARE st;
+  END IF;
+END//
+DELIMITER ;
+
+-- ------------------------------------------------------------
+-- Procédure : ajouter la FK Books.publisher avec une action donnée
+-- act = CASCADE / RESTRICT / SET NULL / NO ACTION
+-- ------------------------------------------------------------
+DROP PROCEDURE IF EXISTS add_fk_books_publisher;
+DELIMITER //
+CREATE PROCEDURE add_fk_books_publisher(IN act VARCHAR(20))
+BEGIN
+  SET @s = CONCAT(
+    'ALTER TABLE Books ADD CONSTRAINT fk_books_publisher ',
+    'FOREIGN KEY (publisher) REFERENCES Publishers(publisherID) ',
+    'ON DELETE ', act, ' ON UPDATE ', act
+  );
+  PREPARE st FROM @s;
+  EXECUTE st;
+  DEALLOCATE PREPARE st;
+END//
+DELIMITER ;
+
+-- ------------------------------------------------------------
+-- Procédure : restaurer Books et Publishers à l'état initial
+-- ------------------------------------------------------------
+DROP PROCEDURE IF EXISTS restore_books_publishers;
+DELIMITER //
+CREATE PROCEDURE restore_books_publishers()
+BEGIN
+  SET FOREIGN_KEY_CHECKS = 0;
+
+  DELETE FROM Books;
+  INSERT INTO Books SELECT * FROM Books_bak;
+
+  DELETE FROM Publishers;
+  INSERT INTO Publishers SELECT * FROM Publishers_bak;
+
+  SET FOREIGN_KEY_CHECKS = 1;
+END//
+DELIMITER ;
+
+-- ------------------------------------------------------------
+-- Procédure : tester une action pour DELETE puis UPDATE
+-- ------------------------------------------------------------
+DROP PROCEDURE IF EXISTS test_action;
+DELIMITER //
+CREATE PROCEDURE test_action(IN act VARCHAR(20))
+BEGIN
+  DECLARE msg TEXT;
+
+  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+  BEGIN
+    GET DIAGNOSTICS CONDITION 1 msg = MESSAGE_TEXT;
+    SELECT CONCAT('ERREUR / COMMENTAIRE pour ', act, ' : ', msg) AS commentaire;
+  END;
+
+  -- ========== TEST 1 : DELETE publisherID = 3 ==========
+  CALL drop_fk_books_publisher();
+  CALL add_fk_books_publisher(act);
+
+  SELECT CONCAT('--- ', act, ' / DELETE publisherID = 3 ---') AS test;
+
+  DELETE FROM Publishers WHERE publisherID = 3;
+
+  SELECT * FROM Books;
+
+  CALL restore_books_publishers();
+
+  -- ========== TEST 2 : UPDATE publisherID 4 -> 3 ==========
+  CALL drop_fk_books_publisher();
+  CALL add_fk_books_publisher(act);
+
+  -- On supprime 3 sans déclencher les FK pour éviter le doublon de PK
+  SET FOREIGN_KEY_CHECKS = 0;
+  DELETE FROM Publishers WHERE publisherID = 3;
+  SET FOREIGN_KEY_CHECKS = 1;
+
+  SELECT CONCAT('--- ', act, ' / UPDATE publisherID 4 -> 3 ---') AS test;
+
+  UPDATE Publishers SET publisherID = 3 WHERE publisherID = 4;
+
+  SELECT * FROM Books;
+
+  CALL restore_books_publishers();
+END//
+DELIMITER ;
+
+-- ============================================================
+-- Application 1 : les 4 scénarios
+-- ============================================================
+CALL test_action('CASCADE');
+CALL test_action('RESTRICT');
+CALL test_action('SET NULL');
+CALL test_action('NO ACTION');
+
+-- ============================================================
+-- Application 2 :
+-- Pour toutes les FK des tables enfants :
+--   ON UPDATE CASCADE
+--   ON DELETE SET NULL
+-- et commenter les erreurs éventuelles.
+-- ============================================================
+DROP PROCEDURE IF EXISTS rebuild_fk_single;
+DELIMITER //
+CREATE PROCEDURE rebuild_fk_single(
+  IN p_table VARCHAR(64),
+  IN p_col VARCHAR(64),
+  IN p_ref_table VARCHAR(64),
+  IN p_ref_col VARCHAR(64),
+  IN p_new_name VARCHAR(64)
+)
+BEGIN
+  DECLARE fk VARCHAR(64) DEFAULT NULL;
+  DECLARE msg TEXT;
+
+  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+  BEGIN
+    GET DIAGNOSTICS CONDITION 1 msg = MESSAGE_TEXT;
+    SELECT CONCAT('ERREUR FK ', p_table, '.', p_col, ' : ', msg) AS commentaire;
+  END;
+
+  SELECT CONSTRAINT_NAME INTO fk
+  FROM information_schema.KEY_COLUMN_USAGE
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = p_table
+    AND COLUMN_NAME = p_col
+    AND REFERENCED_TABLE_NAME = p_ref_table
+    AND REFERENCED_COLUMN_NAME = p_ref_col
+  LIMIT 1;
+
+  IF fk IS NOT NULL THEN
+    SET @s = CONCAT('ALTER TABLE `', p_table, '` DROP FOREIGN KEY `', fk, '`');
+    PREPARE st FROM @s;
+    EXECUTE st;
+    DEALLOCATE PREPARE st;
+  END IF;
+
+  SET @s = CONCAT(
+    'ALTER TABLE `', p_table, '` ',
+    'ADD CONSTRAINT `', p_new_name, '` ',
+    'FOREIGN KEY (`', p_col, '`) ',
+    'REFERENCES `', p_ref_table, '` (`', p_ref_col, '`) ',
+    'ON UPDATE CASCADE ON DELETE SET NULL'
+  );
+  PREPARE st FROM @s;
+  EXECUTE st;
+  DEALLOCATE PREPARE st;
+END//
+DELIMITER ;
+
+-- FK de la base library originale
+CALL rebuild_fk_single('Books',      'publisher', 'Publishers', 'publisherID', 'fk_books_publisher_app2');
+CALL rebuild_fk_single('WrittenBy',  'book',      'Books',      'ISBN',        'fk_writtenby_book_app2');
+CALL rebuild_fk_single('WrittenBy',  'author',    'Authors',    'authorID',    'fk_writtenby_author_app2');
+CALL rebuild_fk_single('BookLoans',  'book',      'Books',      'ISBN',        'fk_bookloans_book_app2');
+CALL rebuild_fk_single('BookLoans',  'member',    'Members',    'memberID',    'fk_bookloans_member_app2');
