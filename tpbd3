@@ -1,0 +1,149 @@
+-- ============================================================
+-- TP03 - Partie IV : ON DELETE / ON UPDATE
+-- Base : My_first_library_database
+-- ============================================================
+USE My_first_library_database;
+
+-- Rendre la colonne publisher nullable (nécessaire pour SET NULL)
+ALTER TABLE Books MODIFY publisher INT NULL;
+
+-- ============================================================
+-- 1) TEST CASCADE
+-- ============================================================
+ALTER TABLE Books DROP FOREIGN KEY fk_books_publisher;
+ALTER TABLE Books ADD CONSTRAINT fk_books_publisher 
+  FOREIGN KEY (publisher) REFERENCES Publishers(publisherID) 
+  ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- 1.a) DELETE publisher 3
+DELETE FROM Publishers WHERE publisherID = 3;
+SELECT * FROM Books;  
+-- Commentaire : les livres qui référençaient publisher 3 sont supprimés (cascade).
+
+-- Restauration
+INSERT INTO Publishers VALUES (3,'Houghton Mifflin Harcourt','Boston, MA',1832,'https://www.hmhbooks.com/');
+UPDATE Books SET publisher = 3 WHERE ISBN = '97805479';
+
+-- 1.b) UPDATE publisher 4 -> 3
+-- On supprime d'abord publisher 3 pour éviter le doublon de clé primaire
+UPDATE Books SET publisher = NULL WHERE publisher = 3;
+DELETE FROM Publishers WHERE publisherID = 3;
+UPDATE Publishers SET publisherID = 3 WHERE publisherID = 4;
+SELECT * FROM Books;  
+-- Commentaire : le livre qui référençait publisher 4 pointe maintenant vers 3 (cascade).
+
+-- Restauration
+UPDATE Books SET publisher = 4 WHERE ISBN = '97803584';
+UPDATE Publishers SET publisherID = 4 WHERE publisherID = 3;
+INSERT INTO Publishers VALUES (3,'Houghton Mifflin Harcourt','Boston, MA',1832,'https://www.hmhbooks.com/');
+UPDATE Books SET publisher = 3 WHERE ISBN = '97805479';
+
+-- ============================================================
+-- 2) TEST RESTRICT
+-- ============================================================
+ALTER TABLE Books DROP FOREIGN KEY fk_books_publisher;
+ALTER TABLE Books ADD CONSTRAINT fk_books_publisher 
+  FOREIGN KEY (publisher) REFERENCES Publishers(publisherID) 
+  ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+-- 2.a) DELETE publisher 3
+DELETE FROM Publishers WHERE publisherID = 3;
+-- Commentaire : ERREUR - suppression refusée car des livres référencent encore publisher 3.
+
+-- 2.b) UPDATE publisher 4 -> 3
+UPDATE Publishers SET publisherID = 3 WHERE publisherID = 4;
+-- Commentaire : ERREUR - mise à jour refusée car le livre 97803584 référence publisher 4.
+
+-- ============================================================
+-- 3) TEST SET NULL
+-- ============================================================
+ALTER TABLE Books DROP FOREIGN KEY fk_books_publisher;
+ALTER TABLE Books ADD CONSTRAINT fk_books_publisher 
+  FOREIGN KEY (publisher) REFERENCES Publishers(publisherID) 
+  ON DELETE SET NULL ON UPDATE SET NULL;
+
+-- 3.a) DELETE publisher 3
+DELETE FROM Publishers WHERE publisherID = 3;
+SELECT * FROM Books;  
+-- Commentaire : les livres qui référençaient publisher 3 ont publisher = NULL.
+
+-- Restauration
+INSERT INTO Publishers VALUES (3,'Houghton Mifflin Harcourt','Boston, MA',1832,'https://www.hmhbooks.com/');
+UPDATE Books SET publisher = 3 WHERE ISBN = '97805479';
+
+-- 3.b) UPDATE publisher 4 -> 3
+UPDATE Books SET publisher = NULL WHERE publisher = 3;
+DELETE FROM Publishers WHERE publisherID = 3;
+UPDATE Publishers SET publisherID = 3 WHERE publisherID = 4;
+SELECT * FROM Books;  
+-- Commentaire : le livre qui référençait publisher 4 a publisher = NULL.
+
+-- Restauration
+UPDATE Books SET publisher = 4 WHERE ISBN = '97803584';
+UPDATE Publishers SET publisherID = 4 WHERE publisherID = 3;
+INSERT INTO Publishers VALUES (3,'Houghton Mifflin Harcourt','Boston, MA',1832,'https://www.hmhbooks.com/');
+UPDATE Books SET publisher = 3 WHERE ISBN = '97805479';
+
+-- ============================================================
+-- 4) TEST NO ACTION
+-- ============================================================
+ALTER TABLE Books DROP FOREIGN KEY fk_books_publisher;
+ALTER TABLE Books ADD CONSTRAINT fk_books_publisher 
+  FOREIGN KEY (publisher) REFERENCES Publishers(publisherID) 
+  ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- 4.a) DELETE publisher 3
+DELETE FROM Publishers WHERE publisherID = 3;
+-- Commentaire : ERREUR - même comportement que RESTRICT.
+
+-- 4.b) UPDATE publisher 4 -> 3
+UPDATE Publishers SET publisherID = 3 WHERE publisherID = 4;
+-- Commentaire : ERREUR - même comportement que RESTRICT.
+
+-- ============================================================
+-- APPLICATION 2 : toutes les FK en ON UPDATE CASCADE / ON DELETE SET NULL
+-- ============================================================
+-- Pour chaque clé étrangère, on doit connaître son nom.
+-- Exécutez ces requêtes pour obtenir les noms, puis remplacez les placeholders.
+
+-- Liste des FK à modifier :
+-- Books.publisher      -> Publishers.publisherID
+-- WrittenBy.book       -> Books.ISBN
+-- WrittenBy.author     -> Authors.authorID
+-- BookLoans.book       -> Books.ISBN
+-- BookLoans.member     -> Members.memberID
+
+-- Exemple pour Books.publisher (déjà fait plus haut) :
+-- ALTER TABLE Books DROP FOREIGN KEY fk_books_publisher;
+-- ALTER TABLE Books ADD CONSTRAINT fk_books_publisher 
+--   FOREIGN KEY (publisher) REFERENCES Publishers(publisherID) 
+--   ON UPDATE CASCADE ON DELETE SET NULL;
+
+-- Pour WrittenBy.book :
+-- ALTER TABLE WrittenBy DROP FOREIGN KEY fk_writtenby_book;
+-- ALTER TABLE WrittenBy ADD CONSTRAINT fk_writtenby_book 
+--   FOREIGN KEY (book) REFERENCES Books(ISBN) 
+--   ON UPDATE CASCADE ON DELETE SET NULL;
+
+-- Pour WrittenBy.author :
+-- ALTER TABLE WrittenBy DROP FOREIGN KEY fk_writtenby_author;
+-- ALTER TABLE WrittenBy ADD CONSTRAINT fk_writtenby_author 
+--   FOREIGN KEY (author) REFERENCES Authors(authorID) 
+--   ON UPDATE CASCADE ON DELETE SET NULL;
+
+-- Pour BookLoans.book :
+-- ALTER TABLE BookLoans DROP FOREIGN KEY fk_bookloans_book;
+-- ALTER TABLE BookLoans ADD CONSTRAINT fk_bookloans_book 
+--   FOREIGN KEY (book) REFERENCES Books(ISBN) 
+--   ON UPDATE CASCADE ON DELETE SET NULL;
+
+-- Pour BookLoans.member :
+-- ALTER TABLE BookLoans DROP FOREIGN KEY fk_bookloans_member;
+-- ALTER TABLE BookLoans ADD CONSTRAINT fk_bookloans_member 
+--   FOREIGN KEY (member) REFERENCES Members(memberID) 
+--   ON UPDATE CASCADE ON DELETE SET NULL;
+
+-- NB : ON DELETE SET NULL échouera si la colonne FK est NOT NULL.
+-- Dans ce cas, MySQL renvoie une erreur du type :
+-- "Column 'xxx' cannot be NOT NULL: needed in a foreign key constraint ... SET NULL"
+-- Il faudra d'abord modifier la colonne pour la rendre nullable.
