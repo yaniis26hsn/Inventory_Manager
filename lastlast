@@ -1,0 +1,163 @@
+-- ============================================================
+-- TP03 – Partie IV : Application
+-- Base : My_first_library_database (état après Partie II)
+-- ============================================================
+
+-- ------------------------------------------------------------
+-- 0. Réinitialisation de la base (état après Partie II)
+-- ------------------------------------------------------------
+DROP DATABASE IF EXISTS My_first_library_database;
+CREATE DATABASE My_first_library_database;
+USE My_first_library_database;
+
+-- Tables nécessaires pour la Partie IV
+CREATE TABLE Publishers (
+  publisherID INT PRIMARY KEY,
+  publisherName VARCHAR(100) NOT NULL,
+  headquartersLocation VARCHAR(100),
+  foundationYear INT,
+  website VARCHAR(200) UNIQUE
+);
+
+CREATE TABLE Books (
+  ISBN VARCHAR(20) PRIMARY KEY,
+  title VARCHAR(50) NOT NULL,
+  publisher INT,
+  publicationDate DATE,
+  genre VARCHAR(50),
+  CONSTRAINT fk_books_publisher FOREIGN KEY (publisher) REFERENCES Publishers(publisherID)
+);
+
+-- Données
+INSERT INTO Publishers VALUES
+(1, 'Penquin', 'New York, NY', 2013, 'https://www.penguinrandomhouse.com/'),
+(2, 'HarperCollins', 'New York, NY', 1989, 'https://www.harpercollins.com/'),
+(3, 'Houghton Mifflin Harcourt', 'Boston, MA', 1832, 'https://www.hmhbooks.com/'),
+(4, 'Penguin Classics', 'London, UK', 1935, 'https://www.penguin.co.uk/'),
+(5, 'HarperOne', 'San Francisco, CA', 1977, 'https://www.harperone.com/'),
+(6, 'St. Martin''s Press', 'New York, NY', 1952, 'https://us.macmillan.com/smp'),
+(7, 'Doubleday', 'New York, NY', 1897, 'https://www.penguinrandomhouse.com/imprints/doubleday/');
+
+INSERT INTO Books (ISBN, title, publisher, publicationDate, genre) VALUES
+('97801424', 'To Kill a Mockingbird', 1, '1960-07-11', 'Fiction'),
+('97800611', '1984', 2, '1949-06-08', 'Science Fiction'),
+('97805479', 'The Hobbit', 3, '1937-09-21', 'Fantasy'),
+('97800629', 'The Push', 2, '2021-01-05', 'Psychological Thriller'),
+('97803582', 'The Silent Patient', 2, '2019-02-05', 'Psychological Thriller'),
+('97803583', 'The Ballad of Songbirds and Snakes', 1, '2020-05-19', 'Dystopian Fiction'),
+('97803584', 'The Midnight Library', 4, '2020-09-29', 'Fiction'),
+('97805931', 'The Testaments', 1, '2019-09-10', 'Dystopian Fiction');
+
+-- Rendre la colonne publisher nullable pour SET NULL
+ALTER TABLE Books MODIFY publisher INT NULL;
+
+-- ============================================================
+-- 1) TEST CASCADE
+-- ============================================================
+ALTER TABLE Books DROP FOREIGN KEY fk_books_publisher;
+ALTER TABLE Books ADD CONSTRAINT fk_books_publisher 
+  FOREIGN KEY (publisher) REFERENCES Publishers(publisherID) 
+  ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- 1.a) DELETE publisher 3
+DELETE FROM Publishers WHERE publisherID = 3;
+SELECT * FROM Books;
+-- Commentaire : le livre "The Hobbit" (publisher 3) est supprimé par cascade.
+
+-- Restauration
+INSERT INTO Publishers VALUES (3, 'Houghton Mifflin Harcourt', 'Boston, MA', 1832, 'https://www.hmhbooks.com/');
+INSERT INTO Books VALUES ('97805479', 'The Hobbit', 3, '1937-09-21', 'Fantasy');
+
+-- 1.b) UPDATE publisher 4 -> 3
+-- On supprime publisher 3 pour éviter un doublon de clé primaire
+UPDATE Books SET publisher = NULL WHERE publisher = 3;
+DELETE FROM Publishers WHERE publisherID = 3;
+UPDATE Publishers SET publisherID = 3 WHERE publisherID = 4;
+SELECT * FROM Books;
+-- Commentaire : le livre "The Midnight Library" voit son publisher passer de 4 à 3 (cascade).
+
+-- Restauration
+UPDATE Books SET publisher = 4 WHERE ISBN = '97803584';
+UPDATE Publishers SET publisherID = 4 WHERE publisherID = 3;
+INSERT INTO Publishers VALUES (3, 'Houghton Mifflin Harcourt', 'Boston, MA', 1832, 'https://www.hmhbooks.com/');
+UPDATE Books SET publisher = 3 WHERE ISBN = '97805479';
+
+-- ============================================================
+-- 2) TEST RESTRICT
+-- ============================================================
+ALTER TABLE Books DROP FOREIGN KEY fk_books_publisher;
+ALTER TABLE Books ADD CONSTRAINT fk_books_publisher 
+  FOREIGN KEY (publisher) REFERENCES Publishers(publisherID) 
+  ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+-- 2.a) DELETE publisher 3
+DELETE FROM Publishers WHERE publisherID = 3;
+-- Commentaire : ERREUR - suppression refusée car des livres référencent encore publisher 3.
+
+-- 2.b) UPDATE publisher 4 -> 3
+UPDATE Publishers SET publisherID = 3 WHERE publisherID = 4;
+-- Commentaire : ERREUR - mise à jour refusée car le livre "The Midnight Library" référence publisher 4.
+
+-- ============================================================
+-- 3) TEST SET NULL
+-- ============================================================
+ALTER TABLE Books DROP FOREIGN KEY fk_books_publisher;
+ALTER TABLE Books ADD CONSTRAINT fk_books_publisher 
+  FOREIGN KEY (publisher) REFERENCES Publishers(publisherID) 
+  ON DELETE SET NULL ON UPDATE SET NULL;
+
+-- 3.a) DELETE publisher 3
+DELETE FROM Publishers WHERE publisherID = 3;
+SELECT * FROM Books;
+-- Commentaire : le livre "The Hobbit" a maintenant publisher = NULL.
+
+-- Restauration
+INSERT INTO Publishers VALUES (3, 'Houghton Mifflin Harcourt', 'Boston, MA', 1832, 'https://www.hmhbooks.com/');
+UPDATE Books SET publisher = 3 WHERE ISBN = '97805479';
+
+-- 3.b) UPDATE publisher 4 -> 3
+UPDATE Books SET publisher = NULL WHERE publisher = 3;
+DELETE FROM Publishers WHERE publisherID = 3;
+UPDATE Publishers SET publisherID = 3 WHERE publisherID = 4;
+SELECT * FROM Books;
+-- Commentaire : "The Midnight Library" a publisher = NULL suite à la mise à jour.
+
+-- Restauration
+UPDATE Books SET publisher = 4 WHERE ISBN = '97803584';
+UPDATE Publishers SET publisherID = 4 WHERE publisherID = 3;
+INSERT INTO Publishers VALUES (3, 'Houghton Mifflin Harcourt', 'Boston, MA', 1832, 'https://www.hmhbooks.com/');
+UPDATE Books SET publisher = 3 WHERE ISBN = '97805479';
+
+-- ============================================================
+-- 4) TEST NO ACTION
+-- ============================================================
+ALTER TABLE Books DROP FOREIGN KEY fk_books_publisher;
+ALTER TABLE Books ADD CONSTRAINT fk_books_publisher 
+  FOREIGN KEY (publisher) REFERENCES Publishers(publisherID) 
+  ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- 4.a) DELETE publisher 3
+DELETE FROM Publishers WHERE publisherID = 3;
+-- Commentaire : ERREUR - même comportement que RESTRICT.
+
+-- 4.b) UPDATE publisher 4 -> 3
+UPDATE Publishers SET publisherID = 3 WHERE publisherID = 4;
+-- Commentaire : ERREUR - même comportement que RESTRICT.
+
+-- ============================================================
+-- Application 2 : toutes les FK en ON UPDATE CASCADE / ON DELETE SET NULL
+-- ============================================================
+-- (À exécuter après avoir remis la base dans son état complet)
+-- Pour chaque FK de la base d'origine :
+-- ALTER TABLE ... DROP FOREIGN KEY ...;
+-- ALTER TABLE ... ADD CONSTRAINT ... FOREIGN KEY ... 
+--   ON UPDATE CASCADE ON DELETE SET NULL;
+
+-- Exemple avec Books.publisher :
+-- ALTER TABLE Books DROP FOREIGN KEY fk_books_publisher;
+-- ALTER TABLE Books ADD CONSTRAINT fk_books_publisher 
+--   FOREIGN KEY (publisher) REFERENCES Publishers(publisherID) 
+--   ON UPDATE CASCADE ON DELETE SET NULL;
+
+-- NB : ON DELETE SET NULL échoue si la colonne FK est NOT NULL.
+-- Il faut d'abord faire : ALTER TABLE ... MODIFY colonne INT NULL;
