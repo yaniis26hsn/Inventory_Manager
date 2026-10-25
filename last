@@ -1,0 +1,177 @@
+-- ============================================================
+-- TP03 – Parties II & III : Application complète
+-- Base : My_first_library_database
+-- ============================================================
+
+-- ------------------------------------------------------------
+-- 0. Réinitialisation de la base
+-- ------------------------------------------------------------
+DROP DATABASE IF EXISTS My_first_library_database;
+CREATE DATABASE My_first_library_database;
+USE My_first_library_database;
+
+-- ============================================================
+-- PARTIE II – Application : Création & Population
+-- ============================================================
+
+-- ------------------------------------------------------------
+-- Création des tables
+-- ------------------------------------------------------------
+CREATE TABLE Publishers (
+  publisherID INT AUTO_INCREMENT PRIMARY KEY,
+  publisherName VARCHAR(100) NOT NULL,
+  headquartersLocation VARCHAR(100),
+  foundationYear INT,
+  website VARCHAR(200) UNIQUE
+);
+
+CREATE TABLE Authors (
+  authorID INT AUTO_INCREMENT PRIMARY KEY,
+  authorName VARCHAR(100),
+  email VARCHAR(100) UNIQUE,
+  age INT,
+  country VARCHAR(50)
+);
+
+CREATE TABLE Members (
+  memberID INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100),
+  email VARCHAR(100) UNIQUE,
+  phone VARCHAR(20),
+  address VARCHAR(200)
+);
+
+CREATE TABLE Books (
+  ISBN VARCHAR(20) PRIMARY KEY,
+  title VARCHAR(25) NOT NULL,
+  publisher INT,
+  publicationDate DATE,
+  genre VARCHAR(50),
+  CONSTRAINT fk_books_publisher FOREIGN KEY (publisher) REFERENCES Publishers(publisherID)
+);
+
+CREATE TABLE WrittenBy (
+  book VARCHAR(20),
+  author INT,
+  PRIMARY KEY (book, author),
+  CONSTRAINT fk_writtenby_book FOREIGN KEY (book) REFERENCES Books(ISBN),
+  CONSTRAINT fk_writtenby_author FOREIGN KEY (author) REFERENCES Authors(authorID)
+);
+
+CREATE TABLE BookLoans (
+  loanID INT AUTO_INCREMENT PRIMARY KEY,
+  book VARCHAR(20),
+  member INT,
+  borrowDate DATE,
+  returnDate DATE,
+  dueDate DATE,
+  CONSTRAINT fk_bookloans_book FOREIGN KEY (book) REFERENCES Books(ISBN),
+  CONSTRAINT fk_bookloans_member FOREIGN KEY (member) REFERENCES Members(memberID)
+);
+
+-- ------------------------------------------------------------
+-- Insertion des données
+-- ------------------------------------------------------------
+INSERT INTO Publishers (publisherID, publisherName, headquartersLocation, foundationYear, website) VALUES
+(1, 'Penquin', 'New York, NY', 2014, 'https://www.penguinrandomhouse.com/'),
+(2, 'HarperCollins', 'New York, NY', 1989, 'https://www.harpercollins.com/'),
+(3, 'Houghton Mifflin Harcourt', 'Boston, MA', 1832, 'https://www.hmhbooks.com/'),
+(4, 'Penguin Classics', 'London, UK', 1935, 'https://www.penguin.co.uk/'),
+(5, 'HarperOne', 'San Francisco, CA', 1977, 'https://www.harperone.com/'),
+(6, 'St. Martin''s Press', 'New York, NY', 1952, 'https://us.macmillan.com/smp'),
+(7, 'Doubleday', 'New York, NY', 1897, 'https://www.penguinrandomhouse.com/imprints/doubleday/');
+
+INSERT INTO Authors (authorID, authorName, email, age, country) VALUES
+(1, 'Harper Lee', 'harperlee@gmail.com', 89, 'USA'),
+(2, 'George Orwell', 'georgeorwell@gmail.com', 46, 'UK'),
+(3, 'J.R.R. Tolkien', 'tolkien@gmail.com', 81, 'UK');
+
+INSERT INTO Members (memberID, name, email, phone, address) VALUES
+(1, 'John Smith', 'johnsmith@gmail.com', '555-1234', '123 Main St'),
+(2, 'Jane Doe', 'janedoe@gmail.com', '555-5678', '456 Elm St'),
+(3, 'Bob Johnson', 'bobjohnson@gmail.com', '555-9012', '789 Oak St');
+
+INSERT INTO Books (ISBN, title, publisher, publicationDate, genre) VALUES
+('97801424', 'To Kill a Mockingbird', 1, '1960-07-11', 'Fiction'),
+('97800611', '1984', 2, '1949-06-08', 'Science Fiction'),
+('97805479', 'The Hobbit', 3, '1937-09-21', 'Fantasy'),
+('97800629', 'The Push', 2, '2021-01-05', 'Psychological Thriller'),
+('97803582', 'The Silent Patient', 2, '2019-02-05', 'Psychological Thriller'),
+('97803583', 'The Ballad of Songbirds and Snakes', 1, '2020-05-19', 'Dystopian Fiction'),
+('97803584', 'The Midnight Library', 4, '2020-09-29', 'Fiction'),
+('97805931', 'The Testaments', 1, '2019-09-10', 'Dystopian Fiction');
+
+INSERT INTO WrittenBy (book, author) VALUES
+('97801424', 1),
+('97800611', 2),
+('97805479', 3);
+
+INSERT INTO BookLoans (loanID, book, member, borrowDate, returnDate, dueDate) VALUES
+(1, '97801424', 1, '2023-10-01', '2023-10-08', '2023-10-15'),
+(2, '97800611', 2, '2023-10-02', '2023-10-09', '2023-10-16'),
+(3, '97805479', 3, '2023-10-03', '2023-10-10', '2023-10-17');
+
+-- ------------------------------------------------------------
+-- Insertions / Updates demandés
+-- ------------------------------------------------------------
+INSERT INTO Authors (authorID, authorName, email, age, country) 
+VALUES (4, 'JRT', 'tolken@gmail.com', 50, 'UK');
+
+UPDATE Publishers 
+SET foundationYear = 2013 
+WHERE publisherID = 1;
+
+-- On utilise INSERT IGNORE pour éviter un doublon si la relation existe déjà
+INSERT IGNORE INTO WrittenBy (book, author) VALUES ('97805479', 3);
+
+INSERT INTO BookLoans (book, member, borrowDate, returnDate, dueDate) 
+VALUES ('97800611', 1, CURDATE(), NULL, DATE_ADD(CURDATE(), INTERVAL 14 DAY));
+
+-- ============================================================
+-- PARTIE III – Application : Modifications de structure
+-- ============================================================
+
+-- 1. Ajouter la colonne rating à Books
+ALTER TABLE Books ADD COLUMN rating INT;
+
+-- 2. Supprimer la colonne age de Authors
+ALTER TABLE Authors DROP COLUMN age;
+
+-- 3. Augmenter la taille de title de 25 à 50 caractères
+ALTER TABLE Books MODIFY title VARCHAR(50) NOT NULL;
+
+-- 4. Changer publicationDate de DATE à DATETIME
+ALTER TABLE Books MODIFY publicationDate DATETIME;
+
+-- 5. Créer la table BookCategories
+CREATE TABLE BookCategories (
+  categoryID INT AUTO_INCREMENT PRIMARY KEY,
+  categoryName VARCHAR(100)
+);
+
+-- 6. Ajouter categoryID à Books comme clé étrangère
+ALTER TABLE Books ADD COLUMN categoryID INT;
+ALTER TABLE Books ADD CONSTRAINT fk_books_category 
+  FOREIGN KEY (categoryID) REFERENCES BookCategories(categoryID);
+
+-- 7. Ajouter une valeur par défaut (3) à rating
+ALTER TABLE Books ALTER rating SET DEFAULT 3;
+
+-- 8. Supprimer la table Publishers (après avoir retiré la FK)
+ALTER TABLE Books DROP FOREIGN KEY fk_books_publisher;
+DROP TABLE Publishers;
+
+-- 9. Renommer BookLoans en Loans
+RENAME TABLE BookLoans TO Loans;
+
+-- 10. Supprimer memberID de Members
+--     a) On retire d’abord la FK de Loans qui référence Members
+ALTER TABLE Loans DROP FOREIGN KEY fk_bookloans_member;
+--     b) On supprime la clé primaire de Members
+ALTER TABLE Members DROP PRIMARY KEY;
+--     c) On supprime la colonne memberID
+ALTER TABLE Members DROP COLUMN memberID;
+
+-- ============================================================
+-- Fin du script
+-- ============================================================
