@@ -1,0 +1,86 @@
+import networkx as nx
+import matplotlib.pyplot as plt
+import numpy as np
+# Initialize an empty undirected graph
+G1 = nx.Graph()
+
+# Add nodes
+G1.add_nodes_from(['A', 'B', 'C', 'D', 'E', 'F'])
+
+# Add edges
+edges_1 = [('A','B'), ('A','D'), ('A','E'), ('B','C'), ('B','D'), ('C','D'), ('C','E'), ('D','E')]
+G1.add_edges_from(edges_1)
+
+# Define positions (Note: the manual provided lowercase positions, mapping them to uppercase)
+# Also, 'F' position is missing in the manual, we'll add a dummy one to make it look nice
+position_1 = {'A': [0,0], 'B': [-1,1], 'C': [1,1], 'D': [0,1.5], 'E': [-2,2], 'F': [2,2]}
+
+# Draw the graph
+plt.figure(figsize=(6, 4))
+nx.draw(G1, with_labels=True, pos=position_1, node_color='lightblue', node_size=500, font_weight='bold')
+plt.title("Exercise 1 Graph")
+plt.show()
+
+
+# Graph 1: 2x2 Grid (3x3 nodes)
+G2_1 = nx.Graph()
+# Generating grid graph 3x3
+G2_1 = nx.grid_2d_graph(3, 3)
+# Convert to standard nodes (0-8) for better drawing
+mapping = {node: i for i, node in enumerate(G2_1.nodes())}
+G2_1 = nx.relabel_nodes(G2_1, mapping)
+
+# Graph 2: Pentagram (Star)
+G2_2 = nx.Graph()
+# Nodes 0 to 4
+nodes_2 = range(5)
+G2_2.add_nodes_from(nodes_2)
+# Outer cycle
+cycle_edges = [(0,1), (1,2), (2,3), (3,4), (4,0)]
+# Inner star
+star_edges = [(0,2), (2,4), (4,1), (1,3), (3,0)]
+G2_2.add_edges_from(cycle_edges + star_edges)
+
+# Plotting both
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+
+nx.draw(G2_1, ax=ax1, with_labels=True, node_color='lightgreen', node_size=300)
+ax1.set_title("Grid Graph")
+
+nx.draw(G2_2, ax=ax2, with_labels=True, node_color='lightcoral', node_size=300)
+ax2.set_title("Star Graph")
+
+plt.show()
+
+# Graph G (Undirected)
+G = nx.Graph()
+G.add_edges_from([('a','b'), ('b','c'), ('a','d'), ('c','d'), ('d','c')]) # Duplicates ignored
+
+# Graph DG1 (Directed)
+DG1 = nx.DiGraph()
+DG1.add_nodes_from([1, 2, 3, 4, 5])
+DG1.add_edges_from([(1,5), (1,3), (4,2), (5,2), (3,5)])
+
+# Graph DG2 (Directed)
+DG2 = nx.DiGraph()
+DG2.add_nodes_from([1, 2, 'a', 'b'])
+DG2.add_edges_from([('a',2), (1,'b'), ('b','a'), (1,2)])
+
+# Plotting in the same figure with subplots
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+# Use the same colors for all
+node_color = 'lightblue'
+edge_color = 'gray'
+
+nx.draw(G, ax=axes[0], with_labels=True, node_color=node_color, edge_color=edge_color)
+axes[0].set_title("Graph G")
+
+nx.draw(DG1, ax=axes[1], with_labels=True, node_color=node_color, edge_color=edge_color)
+axes[1].set_title("Graph DG1")
+
+nx.draw(DG2, ax=axes[2], with_labels=True, node_color=node_color, edge_color=edge_color)
+axes[2].set_title("Graph DG2")
+
+plt.tight_layout()
+plt.show()
